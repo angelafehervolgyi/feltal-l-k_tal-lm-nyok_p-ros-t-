@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magyar Feltalálók Párosító Játék</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #764ba2;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px dashed #667eea;
+        }
+
+        .column h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+
+        .items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .inventor, .invention {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            user-select: none;
+            border: 2px solid #667eea;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .inventor {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid #667eea;
+        }
+
+        .invention {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: 2px solid #f5576c;
+        }
+
+        .inventor:hover, .invention:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .inventor.selected, .invention.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+            border: 3px solid #FFD700;
+        }
+
+        .connections-area {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px dashed #f5576c;
+            min-height: 150px;
+            margin-bottom: 30px;
+        }
+
+        .connections-area h3 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .no-connections {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .connection-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .connection-item.correct {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            color: #155724;
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+            transform: scale(1.1);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            min-height: 40px;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+            animation: bounce 0.5s ease;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5576c;
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-check {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-check:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: none;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white;
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .score {
+            text-align: center;
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .instruction {
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Magyar Feltalálók 🔬</h1>
+        <p class="subtitle">Párosítsd a feltalálókat és a találmányaikat!</p>
+        
+        <div class="score">Szint: <span id="level">1</span></div>
+        
+        <p class="instruction">Kattints egy feltalálóra, majd a megfelelő találmányra!</p>
+        
+        <div class="message" id="message"></div>
+
+        <div class="game-area">
+            <div class="column">
+                <h2>👨‍🔬 Feltalálók</h2>
+                <div class="items" id="inventors"></div>
+            </div>
+            <div class="column">
+                <h2>💡 Találmányok</h2>
+                <div class="items" id="inventions"></div>
+            </div>
+        </div>
+
+        <div class="connections-area">
+            <h3>🎯 Párosított elemek</h3>
+            <div id="connections" class="no-connections">Kattints a párosítások létrehozásához!</div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-check" onclick="checkAnswers()">✓ Ellenőrzés</button>
+            <button class="btn-reset" onclick="resetGame()">🔄 Újra</button>
+            <button class="btn-next" id="nextBtn" onclick="nextLevel()">➜ Következő szint</button>
+        </div>
+    </div>
+
+    <script>
+        const allData = [
+            {
+                inventors: ['Rubik Ernő', 'Bíró László', 'Gábor Dénes'],
+                inventions: ['Rubik kocka', 'Golyóstoll', 'Holográfia', 'Telefonközpont', 'Dinamó']
+            },
+            {
+                inventors: ['Puskás Tivadar', 'Jedlik Ányos', 'Eötvös Lóránd'],
+                inventions: ['Telefonközpont', 'Dinamó', 'Torziós inga', 'Golyóstoll', 'Rubik kocka']
+            },
+            {
+                inventors: ['Kandó Kálmán', 'Szent-Györgyi Albert', 'Galamb József'],
+                inventions: ['Villamos mozdony', 'C-vitamin', 'Ford T-modell műszaki megoldások', 'Holográfia', 'Torziós inga']
+            }
+        ];
+
+        const correctPairs = {
+            'Rubik Ernő': 'Rubik kocka',
+            'Bíró László': 'Golyóstoll',
+            'Gábor Dénes': 'Holográfia',
+            'Puskás Tivadar': 'Telefonközpont',
+            'Jedlik Ányos': 'Dinamó',
+            'Eötvös Lóránd': 'Torziós inga',
+            'Kandó Kálmán': 'Villamos mozdony',
+            'Szent-Györgyi Albert': 'C-vitamin',
+            'Galamb József': 'Ford T-modell műszaki megoldások'
+        };
+
+        let currentLevel = 0;
+        let connections = {};
+        let selectedInventor = null;
+
+        function initGame() {
+            connections = {};
+            selectedInventor = null;
+            document.getElementById('message').innerHTML = '';
+            document.getElementById('message').className = 'message';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('level').textContent = currentLevel + 1;
+            
+            renderGame();
+        }
+
+        function renderGame() {
+            const data = allData[currentLevel];
+            
+            // Shuffle inventions
+            const shuffledInventions = [...data.inventions].sort(() => Math.random() - 0.5);
+            
+            // Render inventors
+            const inventorsDiv = document.getElementById('inventors');
+            inventorsDiv.innerHTML = data.inventors.map(inventor => 
+                `<div class="inventor" onclick="selectInventor(this, '${inventor}')">${inventor}</div>`
+            ).join('');
+
+            // Render inventions
+            const inventionsDiv = document.getElementById('inventions');
+            inventionsDiv.innerHTML = shuffledInventions.map(invention => 
+                `<div class="invention" onclick="selectInvention(this, '${invention}')">${invention}</div>`
+            ).join('');
+
+            renderConnections();
+        }
+
+        function selectInventor(element, inventor) {
+            // Ha már van kiválasztott feltaláló, távolítsd el az osztályt
+            document.querySelectorAll('.inventor.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+
+            // Ha ugyanarra kattintottál, csak deselect
+            if (selectedInventor === inventor) {
+                selectedInventor = null;
+                return;
+            }
+
+            // Jelöld meg az új feltalálót
+            element.classList.add('selected');
+            selectedInventor = inventor;
+        }
+
+        function selectInvention(element, invention) {
+            // Ha nincs kiválasztott feltaláló, nem csinálunk semmit
+            if (!selectedInventor) {
+                alert('Először válassz ki egy feltalálót!');
+                return;
+            }
+
+            // Párosítsd a feltalálót a találmánnyal
+            connections[selectedInventor] = invention;
+
+            // Töröld a kijelölést
+            document.querySelectorAll('.inventor.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            selectedInventor = null;
+
+            // Frissítsd a párosítások listáját
+            renderConnections();
+        }
+
+        function renderConnections() {
+            const connectionsDiv = document.getElementById('connections');
+            
+            if (Object.keys(connections).length === 0) {
+                connectionsDiv.innerHTML = '<p class="no-connections">Kattints a párosítások létrehozásához!</p>';
+                return;
+            }
+
+            connectionsDiv.innerHTML = Object.entries(connections).map(([inventor, invention]) => {
+                const isCorrect = correctPairs[inventor] === invention;
+                return `
+                    <div class="connection-item ${isCorrect ? 'correct' : ''}">
+                        <span>${inventor} → ${invention}</span>
+                        <button class="remove-btn" onclick="removeConnection('${inventor}')">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeConnection(inventor) {
+            delete connections[inventor];
+            renderConnections();
+        }
+
+        function checkAnswers() {
+            const data = allData[currentLevel];
+            let correct = 0;
+
+            for (const inventor of data.inventors) {
+                if (connections[inventor] === correctPairs[inventor]) {
+                    correct++;
+                }
+            }
+
+            const messageDiv = document.getElementById('message');
+            
+            if (correct === data.inventors.length) {
+                messageDiv.innerHTML = '🎉 Gratulálok! Minden párosítás helyes!';
+                messageDiv.className = 'message success';
+                document.getElementById('nextBtn').style.display = 'block';
+            } else {
+                messageDiv.innerHTML = `❌ Próbáld újra! (${correct}/${data.inventors.length} helyes)`;
+                messageDiv.className = 'message error';
+            }
+        }
+
+        function resetGame() {
+            connections = {};
+            selectedInventor = null;
+            document.getElementById('message').innerHTML = '';
+            document.getElementById('message').className = 'message';
+            document.getElementById('nextBtn').style.display = 'none';
+            renderGame();
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            if (currentLevel >= allData.length) {
+                currentLevel = 0;
+            }
+            initGame();
+        }
+
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>
